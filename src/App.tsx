@@ -165,18 +165,20 @@ const App: React.FC = () => {
                            <tr style={{ fontWeight: 'bold' }}><td>Total Expense</td><td>${results.totalExpense.toLocaleString()}</td></tr>
                        </tbody>
                    </table>
-
-                   {/* Proceed to Stage 2 */}
-                   {/* Display months needed to save */}
-                   <h3 style={{ fontSize: '24px', marginTop: '20px' }}>Months Needed to Save for Total Expense:</h3>
-                   <p style={{ fontSize: '32px', fontWeight: 'bold' }}>{results.monthsNeeded}</p>
-
-                   {/* Move to Stage 3 */}
-                   {setStage(2)} {/* Automatically move to stage 2 after displaying results */}
+                   <button onClick={() => setStage(2)} style={{ marginTop: '20px', padding: '10px', width: '100%' }}>Proceed to Stage 2</button>
                </>
            )}
 
-           {stage === 2 && (
+           {stage === 2 && results.monthsNeeded !== undefined && (
+               <>
+                   <h2>Stage 2 Results - Months Needed to Save for Total Expense</h2>
+                   <h3 style={{ fontSize: '24px', marginTop: '20px' }}>Months Needed:</h3>
+                   <p style={{ fontSize: '32px', fontWeight: 'bold' }}>{results.monthsNeeded}</p>
+                   <button onClick={() => setStage(3)} style={{ marginTop: '20px', padding: '10px', width: '100%' }}>Proceed to Stage 3</button>
+               </>
+           )}
+
+           {stage === 3 && (
                <>
                    {/* Stage 3 Results - DTI Result */}
                    <h2>Stage 3 Results - Debt-to-Income (DTI) Check</h2>
