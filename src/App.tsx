@@ -18,82 +18,96 @@ import {
 Chart.register(...registerables);
 
 const App: React.FC = () => {
-   // State for transaction and valuation prices with default values
-   const [transactionPrice, setTransactionPrice] = useState<number>(8000000); // Default transaction price
-   const [valuationPrice, setValuationPrice] = useState<number>(9000000); 
+   // State for transaction and valuation prices without default values
+   const [transactionPrice, setTransactionPrice] = useState<number>();
+   const [valuationPrice, setValuationPrice] = useState<number>();
 
-   // Stage 2 variables with default values
-   const [initialSavings, setInitialSavings] = useState<number>(200000); 
-   const [monthlySalary, setMonthlySalary] = useState<number>(30000); // Default monthly salary
-   const [savingPercentage, setSavingPercentage] = useState<number>(10); // Default saving percentage
-   const [annualReturn, setAnnualReturn] = useState<number>(5); // Default annual return
+   // Stage 2 variables without default values
+   const [initialSavings, setInitialSavings] = useState<number>();
+   const [monthlySalary, setMonthlySalary] = useState<number>();
+   const [savingPercentage, setSavingPercentage] = useState<number>();
+   const [annualReturn, setAnnualReturn] = useState<number>();
 
-   // Stage 3 variables with default value for income
-   const [income, setIncome] = useState<number>(117436.67); // Default income for stress test
+   // Stage 3 variables without default value for income
+   const [income, setIncome] = useState<number>();
 
    // Results state
    const [results, setResults] = useState<any>({});
+   const [stage, setStage] = useState<number>(0); // To track which stage we are in
 
    // Function to handle calculations
    const handleCalculateExpenses = () => {
-       // Calculate expenses
-       const downPayment = calculateDownpayment(transactionPrice, valuationPrice);
-       const agencyFee = calculateAgencyFee(transactionPrice);
-       const legalFee = calculateLegalFee(transactionPrice);
-       const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
-       const bankLoan = calculateBankLoan(transactionPrice, valuationPrice);
-       const stampDutyFee = calculateStampDutyFee(transactionPrice, valuationPrice); // Calculate stamp duty fee
+       if (transactionPrice && valuationPrice && initialSavings && monthlySalary && savingPercentage && annualReturn && income) {
+           // Calculate expenses
+           const downPayment = calculateDownpayment(transactionPrice, valuationPrice);
+           const agencyFee = calculateAgencyFee(transactionPrice);
+           const legalFee = calculateLegalFee(transactionPrice);
+           const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
+           const bankLoan = calculateBankLoan(transactionPrice, valuationPrice);
+           const stampDutyFee = calculateStampDutyFee(transactionPrice, valuationPrice);
 
-       // Calculate total expense
-       const totalExpense = downPayment + agencyFee + legalFee + mortgageInsurance + bankLoan + stampDutyFee; // Include stamp duty fee
+           // Calculate total expense
+           const totalExpense = downPayment + agencyFee + legalFee + mortgageInsurance + bankLoan + stampDutyFee;
 
-       // Calculate months needed to save for total expense
-       const monthsNeeded = calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage / 100, annualReturn / 100, totalExpense);
+           // Calculate months needed to save for total expense
+           const monthsNeeded = calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage / 100, annualReturn / 100, totalExpense);
 
-       // Calculate total loan and check stress test and DTI
-       const totalLoan = calculateTotalLoan(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
-       const dtiResult = checkStressAndDTI(totalLoan, income / 12, 10); // Monthly income
+           // Calculate total loan and check stress test and DTI
+           const totalLoan = calculateTotalLoan(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
+           const dtiResult = checkStressAndDTI(totalLoan, income / 12, 10); // Monthly income
 
-       // Prepare data for chart
-       const dataChart = {
-           labels: ['Downpayment', 'Agency Fee', 'Legal Fee', 'Mortgage Insurance', 'Stamp Duty Fee', 'Total Expense'],
-           datasets: [{
-               label: 'Expenses',
-               data: [
-                   downPayment,
-                   agencyFee,
-                   legalFee,
-                   mortgageInsurance,
-                   stampDutyFee,
-                   totalExpense
-               ],
-               backgroundColor: ['rgba(75,192,192)', 'rgba(255,99,132)', 'rgba(255,206,86)', 'rgba(54,162,235)', 'rgba(153,102,255)', 'rgba(255,159,64)'],
-               borderWidth: 1,
-           }],
-       };
+           // Prepare data for chart
+           const dataChart = {
+               labels: ['Downpayment', 'Agency Fee', 'Legal Fee', 'Mortgage Insurance', 'Stamp Duty Fee', 'Total Expense'],
+               datasets: [{
+                   label: 'Expenses',
+                   data: [
+                       downPayment,
+                       agencyFee,
+                       legalFee,
+                       mortgageInsurance,
+                       stampDutyFee,
+                       totalExpense
+                   ],
+                   backgroundColor: ['rgba(75,192,192)', 'rgba(255,99,132)', 'rgba(255,206,86)', 'rgba(54,162,235)', 'rgba(153,102,255)', 'rgba(255,159,64)'],
+                   borderWidth: 1,
+               }],
+           };
 
-       setResults({
-           totalExpense,
-           monthsNeeded,
-           dtiResult,
-           chartData: dataChart
-       });
+           setResults({
+               downPayment,
+               agencyFee,
+               legalFee,
+               mortgageInsurance,
+               bankLoan,
+               stampDutyFee,
+               totalExpense,
+               monthsNeeded,
+               dtiResult,
+               chartData: dataChart
+           });
+
+           setStage(1); // Move to stage 1 results display
+       } else {
+           alert("Please fill in all fields.");
+       }
    };
 
    return (
-       <div style={{ padding: '20px' }}>
-           <h1>Property Financial Calculator</h1>
+       <div style={{ padding: '20px', maxWidth: '600px', margin: 'auto' }}>
+           <h1 style={{ textAlign: 'center' }}>Property Financial Calculator</h1>
            
            {/* Input Section */}
-           <div>
+           <div style={{ marginBottom: '20px' }}>
+               <h2>Input Values</h2>
                <label>
                    Transaction Price:
-                   <input type="number" value={transactionPrice} onChange={(e) => setTransactionPrice(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={transactionPrice || ''} onChange={(e) => setTransactionPrice(Number(e.target.value))} />
                </label>
                <br />
                <label>
                    Valuation Price:
-                   <input type="number" value={valuationPrice} onChange={(e) => setValuationPrice(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={valuationPrice || ''} onChange={(e) => setValuationPrice(Number(e.target.value))} />
                </label>
                <br />
                
@@ -101,46 +115,79 @@ const App: React.FC = () => {
                <h2>Stage 2 Inputs</h2>
                <label>
                    Initial Savings:
-                   <input type="number" value={initialSavings} onChange={(e) => setInitialSavings(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={initialSavings || ''} onChange={(e) => setInitialSavings(Number(e.target.value))} />
                </label>
                <br />
                <label>
                    Monthly Salary:
-                   <input type="number" value={monthlySalary} onChange={(e) => setMonthlySalary(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={monthlySalary || ''} onChange={(e) => setMonthlySalary(Number(e.target.value))} />
                </label>
                <br />
                <label>
                    Saving Percentage:
-                   <input type="number" value={savingPercentage} onChange={(e) => setSavingPercentage(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={savingPercentage || ''} onChange={(e) => setSavingPercentage(Number(e.target.value))} />
                </label>
                <br />
                <label>
                    Annual Return (%):
-                   <input type="number" value={annualReturn} onChange={(e) => setAnnualReturn(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={annualReturn || ''} onChange={(e) => setAnnualReturn(Number(e.target.value))} />
                </label>
 
                {/* Stage 3 Input */}
                <h2>Stage 3 Input</h2>
                <label>
                    Monthly Income:
-                   <input type="number" value={income} onChange={(e) => setIncome(Number(e.target.value))} />
+                   <input type="number" style={{ marginLeft: '10px' }} value={income || ''} onChange={(e) => setIncome(Number(e.target.value))} />
                </label>
 
                {/* Calculate Button */}
-               <button onClick={handleCalculateExpenses}>Calculate</button>
+               <button onClick={handleCalculateExpenses} style={{ marginTop: '20px', padding: '10px', width: '100%' }}>Calculate</button>
            </div>
 
            {/* Results Section */}
-           {results.totalExpense !== undefined && (
+           {stage === 1 && results.totalExpense !== undefined && (
                <>
-                   <h2>Results</h2>
-                   <p>Total Expense: {results.totalExpense}</p>
-                   <p>Months Needed to Save: {results.monthsNeeded}</p>
+                   <h2>Stage 1 Results - Expenses Breakdown</h2>
+                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                       <thead>
+                           <tr>
+                               <th style={{ borderBottom: '1px solid #ddd' }}>Description</th>
+                               <th style={{ borderBottom: '1px solid #ddd' }}>Amount ($)</th>
+                           </tr>
+                       </thead>
+                       <tbody>
+                           <tr><td>Downpayment</td><td>${results.downPayment.toLocaleString()}</td></tr>
+                           <tr><td>Agency Fee</td><td>${results.agencyFee.toLocaleString()}</td></tr>
+                           <tr><td>Legal Fee</td><td>${results.legalFee.toLocaleString()}</td></tr>
+                           <tr><td>Mortgage Insurance</td><td>${results.mortgageInsurance.toLocaleString()}</td></tr>
+                           <tr><td>Bank Loan</td><td>${results.bankLoan.toLocaleString()}</td></tr>
+                           <tr><td>Stamp Duty Fee</td><td>${results.stampDutyFee.toLocaleString()}</td></tr>
+                           <tr style={{ fontWeight: 'bold' }}><td>Total Expense</td><td>${results.totalExpense.toLocaleString()}</td></tr>
+                       </tbody>
+                   </table>
+
+                   {/* Proceed to Stage 2 */}
+                   {/* Display months needed to save */}
+                   <h3 style={{ fontSize: '24px', marginTop: '20px' }}>Months Needed to Save for Total Expense:</h3>
+                   <p style={{ fontSize: '32px', fontWeight: 'bold' }}>{results.monthsNeeded}</p>
+
+                   {/* Move to Stage 3 */}
+                   {setStage(2)} {/* Automatically move to stage 2 after displaying results */}
+               </>
+           )}
+
+           {stage === 2 && (
+               <>
+                   {/* Stage 3 Results - DTI Result */}
+                   <h2>Stage 3 Results - Debt-to-Income (DTI) Check</h2>
                    <p>{results.dtiResult}</p>
 
                    {/* Chart Display */}
                    {results.chartData && (
-                       <Bar data={results.chartData} />
+                       <>
+                           <h3>Expenses Chart:</h3>
+                           <Bar data={results.chartData} />
+                       </>
                    )}
                </>
            )}
