@@ -12,24 +12,24 @@ import {
     calculateMonthsNeeded,
     calculateTotalLoan,
     checkStressAndDTI,
-    calculateStampDutyFee,
+    calculateStampDutyFee
 } from './calculations';
 
 Chart.register(...registerables);
 
 const App: React.FC = () => {
-   // State for transaction and valuation prices
-   const [transactionPrice, setTransactionPrice] = useState<number>(8000000); // Example default value for testing
-   const [valuationPrice, setValuationPrice] = useState<number>(9000000); // Example default value for testing
+   // State for transaction and valuation prices with default values
+   const [transactionPrice, setTransactionPrice] = useState<number>(8000000); // Default transaction price
+   const [valuationPrice, setValuationPrice] = useState<number>(9000000); 
 
-   // Stage variables for savings and income calculations
-   const [initialSavings, setInitialSavings] = useState<number>(200000); // Example default value for testing
-   const [monthlySalary, setMonthlySalary] = useState<number>(30000); // Example default value for testing
-   const [savingPercentage, setSavingPercentage] = useState<number>(10); // Example default value for testing
-   const [annualReturn, setAnnualReturn] = useState<number>(5); // Example default value for testing
+   // Stage 2 variables with default values
+   const [initialSavings, setInitialSavings] = useState<number>(200000); 
+   const [monthlySalary, setMonthlySalary] = useState<number>(30000); // Default monthly salary
+   const [savingPercentage, setSavingPercentage] = useState<number>(10); // Default saving percentage
+   const [annualReturn, setAnnualReturn] = useState<number>(5); // Default annual return
 
-   // Stage variables for income calculations
-   const [income, setIncome] = useState<number>(120000); // Example default value for testing
+   // Stage 3 variables with default value for income
+   const [income, setIncome] = useState<number>(117436.67); // Default income for stress test
 
    // Results state
    const [results, setResults] = useState<any>({});
@@ -40,51 +40,35 @@ const App: React.FC = () => {
        const downPayment = calculateDownpayment(transactionPrice, valuationPrice);
        const agencyFee = calculateAgencyFee(transactionPrice);
        const legalFee = calculateLegalFee(transactionPrice);
-       const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, /* tenor */15); 
-       const bankLoanAmount = calculateBankLoan(transactionPrice, valuationPrice);
-       const stampDutyFee = calculateStampDutyFee(transactionPrice, valuationPrice);
+       const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
+       const bankLoan = calculateBankLoan(transactionPrice, valuationPrice);
+       const stampDutyFee = calculateStampDutyFee(transactionPrice, valuationPrice); // Calculate stamp duty fee
 
        // Calculate total expense
-       const totalExpense =
-           downPayment +
-           agencyFee +
-           legalFee +
-           mortgageInsurance -
-           bankLoanAmount +
-           stampDutyFee; 
+       const totalExpense = downPayment + agencyFee + legalFee + mortgageInsurance + bankLoan + stampDutyFee; // Include stamp duty fee
 
        // Calculate months needed to save for total expense
-       const monthsNeeded =
-           calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage /100 , annualReturn /100 , totalExpense);
+       const monthsNeeded = calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage / 100, annualReturn / 100, totalExpense);
 
        // Calculate total loan and check stress test and DTI
-       const totalLoan =
-           calculateTotalLoan(transactionPrice ,valuationPrice ,15); 
-       const dtiResult =
-           checkStressAndDTI(totalLoan , income ,15 ); 
+       const totalLoan = calculateTotalLoan(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
+       const dtiResult = checkStressAndDTI(totalLoan, income / 12, 10); // Monthly income
 
-       // Prepare data for chart display
-       const dataChart={
-           labels:['Downpayment', 'Agency Fee', 'Legal Fee', 'Mortgage Insurance', 'Stamp Duty Fee', 'Total Expense'],
-           datasets:[{
-               label:'Expenses',
-               data:[
+       // Prepare data for chart
+       const dataChart = {
+           labels: ['Downpayment', 'Agency Fee', 'Legal Fee', 'Mortgage Insurance', 'Stamp Duty Fee', 'Total Expense'],
+           datasets: [{
+               label: 'Expenses',
+               data: [
                    downPayment,
                    agencyFee,
                    legalFee,
                    mortgageInsurance,
                    stampDutyFee,
-                   totalExpense,
+                   totalExpense
                ],
-               backgroundColor:[
-                   'rgba(75 ,192 ,192)',
-                   'rgba(255 ,99 ,132)',
-                   'rgba(255 ,206 ,86)',
-                   'rgba(54 ,162 ,235)',
-                   'rgba(153 ,102 ,255)',
-                   'rgba(255 ,159 ,64)',
-               ],
-               borderWidth :1 ,
+               backgroundColor: ['rgba(75,192,192)', 'rgba(255,99,132)', 'rgba(255,206,86)', 'rgba(54,162,235)', 'rgba(153,102,255)', 'rgba(255,159,64)'],
+               borderWidth: 1,
            }],
        };
 
@@ -92,12 +76,12 @@ const App: React.FC = () => {
            totalExpense,
            monthsNeeded,
            dtiResult,
-           chartData:dataChart ,
+           chartData: dataChart
        });
    };
 
    return (
-       <div style={{ padding:'20px' }}>
+       <div style={{ padding: '20px' }}>
            <h1>Property Financial Calculator</h1>
            
            {/* Input Section */}
@@ -113,8 +97,8 @@ const App: React.FC = () => {
                </label>
                <br />
                
-               {/* Stage Inputs */}
-               <h2>Stage Inputs</h2>
+               {/* Stage 2 Inputs */}
+               <h2>Stage 2 Inputs</h2>
                <label>
                    Initial Savings:
                    <input type="number" value={initialSavings} onChange={(e) => setInitialSavings(Number(e.target.value))} />
@@ -135,8 +119,8 @@ const App: React.FC = () => {
                    <input type="number" value={annualReturn} onChange={(e) => setAnnualReturn(Number(e.target.value))} />
                </label>
 
-               {/* Income Input */}
-               <h2>Income Input</h2>
+               {/* Stage 3 Input */}
+               <h2>Stage 3 Input</h2>
                <label>
                    Monthly Income:
                    <input type="number" value={income} onChange={(e) => setIncome(Number(e.target.value))} />
