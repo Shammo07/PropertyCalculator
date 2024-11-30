@@ -5,7 +5,7 @@ export function calculateDownpayment(transactionPrice: number, valuationPrice: n
 
 // Function to calculate agency fee
 export function calculateAgencyFee(transactionPrice: number): number {
-    return 0.01 * transactionPrice;
+    return Math.round(0.01 * transactionPrice);
 }
 
 // Function to calculate legal fee
@@ -18,7 +18,7 @@ export function calculateLegalFee(transactionPrice: number): number {
     } else if (transactionPrice < 10000000) {
         return 8000 + disbursementLegalFee;
     } else {
-        return disbursementLegalFee + (0.001 * transactionPrice);
+        return Math.round(disbursementLegalFee + (0.001 * transactionPrice));
     }
 }
 
@@ -56,25 +56,43 @@ export function calculateStampDutyFee(transactionPrice: number, valuationPrice: 
 
 // Function to calculate mortgage insurance
 export function calculateMortgageInsurance(transactionPrice: number, valuationPrice: number, years: number): number {
-    const mortgageInsurance = 0.20 * valuationPrice;
     const price = Math.min(transactionPrice, valuationPrice);
-    
+    const loan = 0.90 * price;
     let spp = 0;
     if (price <= 6000000) {
-        if (years === 10) spp = 0.0116 * price;
-        else if (years === 15) spp = 0.0137 * price;
-        else if (years === 20) spp = 0.0170 * price;
-        else if (years === 25) spp = 0.0192 * price;
-        else if (years === 30) spp = 0.0205 * price;
+        if (years === 10) spp = 0.0116 * loan;
+        else if (years === 15) spp = 0.0137 * loan;
+        else if (years === 20) spp = 0.0170 * loan;
+        else if (years === 25) spp = 0.0192 * loan;
+        else if (years === 30) spp = 0.0205 * loan;
     } else if (price <= 15000000) {
-        if (years === 10) spp = 0.0135 * price;
-        else if (years === 15) spp = 0.0160 * price;
-        else if (years === 20) spp = 0.0198 * price;
-        else if (years === 25) spp = 0.0223 * price;
-        else if (years === 30) spp = 0.0238 * price;
+        if (years === 10) spp = 0.0135 * loan;
+        else if (years === 15) spp = 0.0160 * loan;
+        else if (years === 20) spp = 0.0198 * loan;
+        else if (years === 25) spp = 0.0223 * loan;
+        else if (years === 30) spp = 0.0238 * loan;
     }
 
-    return Math.round(spp + mortgageInsurance);
+    return Math.round(spp);
+}
+
+export function calculateBankRebate(expense: number): number {
+    let rebatePercentage = 0;
+    while (true) {
+        try {
+            rebatePercentage = parseFloat(prompt("Enter the bank rebate percentage(between 0.5 and 2.5): ") || '');
+
+            if (rebatePercentage >= 0.5 && rebatePercentage <= 2.5) {
+                break;
+            } else {
+                console.log("Please enter a bank rebate percentage between 0.5 and 2.5.");
+            }
+        } catch (error) {
+            console.log("Invalid input. Please enter a number between 0.5 and 2.5.");
+        }
+    }
+
+    return Math.round((rebatePercentage / 100) * expense);
 }
 
 // Function to calculate bank loan
@@ -84,12 +102,12 @@ export function calculateBankLoan(transactionPrice: number, valuationPrice: numb
 
 // Function to calculate salary saved per month
 export function calculateSalarySaved(salary: number, savingPercentage: number): number {
-    return salary * (savingPercentage /100);
+    return Math.round(salary * (savingPercentage /100));
 }
 
 // Function to calculate the return on investment per month
 export function calculateROIperMonth(cumulativeSaving: number, annualReturn: number): number {
-   return cumulativeSaving * (annualReturn /12);
+   return Math.round(cumulativeSaving * (annualReturn /12));
 }
 
 // Function to calculate the months needed to acquire the total expense of purchasing property
@@ -126,7 +144,7 @@ export function calculateAmortizationAmount(loan: number, annualInterestRate: nu
 export function calculateMonthlyPayment(loan: number, interestRate: number, tenorInYears: number): number {
    const months = tenorInYears *12; // Convert years to months
    const amount = calculateAmortizationAmount(loan, interestRate, months);
-   return amount; // Return already rounded value from the amortization calculation
+   return Math.round(amount); // Return already rounded value from the amortization calculation
 }
 
 // Function to calculate the total loan
