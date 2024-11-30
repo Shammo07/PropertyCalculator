@@ -30,6 +30,7 @@ const App: React.FC = () => {
     const [annualReturn, setAnnualReturn] = useState<number>();
 
 
+
     // Results state
     const [results, setResults] = useState<any>({});
     const [stage, setStage] = useState<number>(0); // To track which stage we are in
@@ -47,17 +48,19 @@ const App: React.FC = () => {
             const bankRebate = calculateBankRebate(valuationPrice);
 
             // Calculate total expense
-            const totalExpense = downPayment + agencyFee + legalFee + mortgageInsurance + bankLoan + stampDutyFee - bankRebate;
+            const totalExpense = downPayment + agencyFee + legalFee + mortgageInsurance + stampDutyFee - bankRebate;
 
             // Calculate months needed to save for total expense
-            const monthsNeeded = calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage / 100, annualReturn / 100, totalExpense);
+            const monthsNeeded = calculateMonthsNeeded(initialSavings, monthlySalary, savingPercentage, annualReturn, totalExpense);
 
             // Calculate total loan and check stress test and DTI
-            let totalLoan = 0;
-            let dtiResult = "";
+            const dtiResults: { year: number; result: string; }[] = [];
             for (let years = 10; years <= 30; years += 5) {
-                totalLoan = calculateTotalLoan(transactionPrice, valuationPrice, years);
-                dtiResult = checkStressAndDTI(totalLoan, monthlySalary / 12, years);            
+                const totalLoan = calculateTotalLoan(transactionPrice, valuationPrice, years);
+                const dtiResult = checkStressAndDTI(totalLoan, monthlySalary, years);
+                // Store the result for the current year in the array
+                dtiResults.push({ year: years, result: dtiResult });
+                console.log(dtiResults);
             }
             // Prepare data for chart
             const dataChart = {
@@ -88,7 +91,7 @@ const App: React.FC = () => {
                 bankRebate,
                 totalExpense,
                 monthsNeeded,
-                dtiResult,
+                dtiResults,
                 chartData: dataChart
             });
 
@@ -146,12 +149,12 @@ const App: React.FC = () => {
             {/* Results Section */}
             {stage === 1 && results.totalExpense !== undefined && (
                 <>
-                    <h2>Stage 1 Results - Expenses Breakdown</h2>
+                    <h2>Stage 1 Results - Expenses Breakdown (For a Loan Tenor of 10)</h2>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
                                 <th style={{ borderBottom: '1px solid #ddd' }}>Description</th>
-                                <th style={{ borderBottom: '1px solid #ddd' }}>Amount ($)</th>
+                                <th style={{ borderBottom: '1px solid #ddd' }}>Amount (HK$)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -161,7 +164,7 @@ const App: React.FC = () => {
                             <tr><td>Mortgage Insurance</td><td>${results.mortgageInsurance.toLocaleString()}</td></tr>
                             <tr><td>Bank Loan</td><td>${results.bankLoan.toLocaleString()}</td></tr>
                             <tr><td>Stamp Duty Fee</td><td>${results.stampDutyFee.toLocaleString()}</td></tr>
-                            <tr><td>Bank Rebate</td><td>${results.bankRebate.toLocaleString()}</td></tr>
+                            <tr><td>Bank Rebate</td><td>-${results.bankRebate.toLocaleString()}</td></tr>
                             <tr style={{ fontWeight: 'bold' }}><td>Total Expense</td><td>${results.totalExpense.toLocaleString()}</td></tr>
                         </tbody>
                     </table>
@@ -187,13 +190,19 @@ const App: React.FC = () => {
                 </>
             )}
 
-            {stage === 3 && (
+            {stage === 3 && results.dtiResults !== undefined && (
                 <>
-                    {/* Stage 3 Results - DTI Result */}
-                    <h2>Stage 3 Results - Debt-to-Income (DTI) Check</h2>
-                    <p>{results.dtiResult}</p>
+                    {/* Stage 3 Results - Debt-to-Income (DTI) Check */}
+                    <h2>Stage 3 Results - Debt-to-Income (DTI) and Stress Test Check</h2>
+                    {results.dtiResults.map((result: { year: number, result: string }) => (
+                        <div key={result.year}>
+                            <h3>Year: {result.year}</h3>
+                            <p>{result.result}</p>
+                        </div>
+                    ))}
                 </>
             )}
+
         </div>
     );
 }

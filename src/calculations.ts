@@ -102,86 +102,90 @@ export function calculateBankLoan(transactionPrice: number, valuationPrice: numb
 
 // Function to calculate salary saved per month
 export function calculateSalarySaved(salary: number, savingPercentage: number): number {
-    return Math.round(salary * (savingPercentage /100));
+    return Math.round(salary * (savingPercentage / 100));
 }
 
 // Function to calculate the return on investment per month
 export function calculateROIperMonth(cumulativeSaving: number, annualReturn: number): number {
-   return Math.round(cumulativeSaving * (annualReturn /12));
+    const annualReturnPercent = annualReturn/100;
+    return Math.round(cumulativeSaving * (annualReturnPercent / 12));
 }
 
 // Function to calculate the months needed to acquire the total expense of purchasing property
 export function calculateMonthsNeeded(initialSavings: number, monthlySalary: number, savingPercentage: number, annualReturn: number, expenseRequired: number): number {
-   let months = initialSavings > expenseRequired ? 
-                Math.ceil((initialSavings - expenseRequired) / monthlySalary) : 
-                Math.ceil(expenseRequired / monthlySalary); // Adjust based on initial savings
+    let cumulativeSaving = initialSavings;
+    let months = 0;
+    while (cumulativeSaving < expenseRequired) {
+        cumulativeSaving += calculateROIperMonth(cumulativeSaving, annualReturn);
+        cumulativeSaving += calculateSalarySaved(monthlySalary, savingPercentage);
+        months += 1;
+    }
 
-   let cumulativeSaving = initialSavings;
-
-   while(cumulativeSaving < expenseRequired){
-       cumulativeSaving += calculateROIperMonth(cumulativeSaving, annualReturn);
-       cumulativeSaving += calculateSalarySaved(monthlySalary, savingPercentage);
-       months +=1;
-   }
-   
-   return months;
+    return months;
 }
 
 // Function to calculate monthly payment using amortization formula
 export function calculateAmortizationAmount(loan: number, annualInterestRate: number, months: number): number {
-   const monthlyInterestRate = annualInterestRate /100 /12; // Convert annual rate to monthly and percentage to decimal
-   const totalPayments = months; // Use months directly
+    const monthlyInterestRate = annualInterestRate / 100 / 12; // Convert annual rate to monthly and percentage to decimal
+    const totalPayments = months; // Use months directly
 
-   // Amortization formula
-   const monthlyPayment =
-       (loan * monthlyInterestRate) /
-       (1 - Math.pow(1 + monthlyInterestRate, -totalPayments));
+    // Amortization formula
+    const monthlyPayment =
+        (loan * monthlyInterestRate) /
+        (1 - Math.pow(1 + monthlyInterestRate, -totalPayments));
 
-   return Math.round(monthlyPayment ||  0); // Return rounded value or zero
+    return Math.round(monthlyPayment || 0); // Return rounded value or zero
 }
 
 // Function to calculate monthly payment using amortization formula
 export function calculateMonthlyPayment(loan: number, interestRate: number, tenorInYears: number): number {
-   const months = tenorInYears *12; // Convert years to months
-   const amount = calculateAmortizationAmount(loan, interestRate, months);
-   return Math.round(amount); // Return already rounded value from the amortization calculation
+    const months = tenorInYears * 12; // Convert years to months
+    const amount = calculateAmortizationAmount(loan, interestRate, months);
+    return Math.round(amount); // Return already rounded value from the amortization calculation
 }
 
 // Function to calculate the total loan
 export function calculateTotalLoan(transactionPrice: number, valuationPrice: number, years: number): number {
-   const totalLoan =
-       calculateBankLoan(transactionPrice ,valuationPrice ) +
-       calculateMortgageInsurance(transactionPrice ,valuationPrice ,years );
+    const totalLoan =
+        calculateBankLoan(transactionPrice, valuationPrice) +
+        calculateMortgageInsurance(transactionPrice, valuationPrice, years);
 
-   return Math.round(totalLoan);
+    return Math.round(totalLoan);
 }
 
 // Function to check stress test and DTI
 export function checkStressAndDTI(totalLoan: number, income: number, years: number): string {
-   let interestRateInput = parseFloat(prompt("Please enter the percentage for compound interest:") || "1") /100;
+    let interestRateInput = parseFloat(prompt("Please enter the percentage for compound interest for " + years + " years:") || "") / 100;
 
-   const paymentForStress =
-       calculateMonthlyPayment(totalLoan ,interestRateInput + .02 , years); // Use years directly for payments
-   const paymentForDTI =
-       calculateMonthlyPayment(totalLoan ,interestRateInput , years); // Use years directly for payments
+    const paymentForStress =
+        calculateMonthlyPayment(totalLoan, interestRateInput + .02, years); // Use years directly for payments
+    const paymentForDTI =
+        calculateMonthlyPayment(totalLoan, interestRateInput, years); // Use years directly for payments
 
-   const salaryNeededForStress =
-       paymentForStress / .60; 
-   const salaryNeededForDTI =
-       paymentForDTI / .50;
+    const salaryNeededForStress =
+        paymentForStress / .60;
+    const salaryNeededForDTI =
+        paymentForDTI / .50;
 
-   console.log(`The salary required to fulfill the stress test is: ${Math.round(salaryNeededForStress)}\n`);
-   console.log(`The salary required to fulfill the DTI ratio is: ${Math.round(salaryNeededForDTI)}\n`);
+    let stringToReturn = "";
 
-   if(income >= salaryNeededForStress && income >= salaryNeededForDTI){
-       return "Both the DTI-ratio and stress test are fulfilled.";
-   }
-   else if(income >= salaryNeededForStress){
-       return "The Stress test is fulfilled but the DTI-ratio is not fulfilled.";
-   }
-   else if(income >= salaryNeededForDTI){
-       return "The DTI-ratio is fulfilled but the Stress Test is not fulfilled.";
-   }
-   
-   return "Neither the DTI-ratio nor the stress test are fulfilled.";
+
+    stringToReturn += `The salary required to fulfill the stress test is: ${Math.round(salaryNeededForStress)}\n`;
+    stringToReturn += `The salary required to fulfill the DTI ratio is: ${Math.round(salaryNeededForDTI)}\n`;
+
+    if (income >= salaryNeededForStress && income >= salaryNeededForDTI) {
+        stringToReturn += "Both the DTI-ratio and stress test are fulfilled.\n";
+        return stringToReturn;
+    }
+    else if (income >= salaryNeededForStress) {
+        stringToReturn += "The Stress test is fulfilled but the DTI-ratio is not fulfilled.\n";
+        return stringToReturn;
+    }
+    else if (income >= salaryNeededForDTI) {
+        stringToReturn += "The DTI-ratio is fulfilled but the Stress Test is not fulfilled.\n";
+        return stringToReturn;
+    } else {
+        stringToReturn += "Neither the DTI-ratio nor the stress test are fulfilled.\n";
+        return stringToReturn;
+    }
 }
