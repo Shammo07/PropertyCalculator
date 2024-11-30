@@ -22,6 +22,7 @@ const App: React.FC = () => {
     // State for transaction and valuation prices without default values
     const [transactionPrice, setTransactionPrice] = useState<number>();
     const [valuationPrice, setValuationPrice] = useState<number>();
+    const [loanTenor, setLoanTenor] = useState<number>();
 
     // Stage 2 variables without default values
     const [initialSavings, setInitialSavings] = useState<number>();
@@ -37,12 +38,12 @@ const App: React.FC = () => {
 
     // Function to handle calculations
     const handleCalculateExpenses = () => {
-        if (transactionPrice && valuationPrice && initialSavings && monthlySalary && savingPercentage && annualReturn && monthlySalary) {
+        if (transactionPrice && valuationPrice && initialSavings && monthlySalary && savingPercentage && annualReturn && monthlySalary && loanTenor) {
             // Calculate expenses
             const downPayment = calculateDownpayment(transactionPrice, valuationPrice);
             const agencyFee = calculateAgencyFee(transactionPrice);
             const legalFee = calculateLegalFee(transactionPrice);
-            const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, 10); // Assuming a tenor of 10 years
+            const mortgageInsurance = calculateMortgageInsurance(transactionPrice, valuationPrice, loanTenor);
             const bankLoan = calculateBankLoan(transactionPrice, valuationPrice);
             const stampDutyFee = calculateStampDutyFee(transactionPrice, valuationPrice);
             const bankRebate = calculateBankRebate(valuationPrice);
@@ -116,6 +117,17 @@ const App: React.FC = () => {
                 <label>
                     Valuation Price:
                     <input type="number" style={{ marginLeft: '10px' }} value={valuationPrice || ''} onChange={(e) => setValuationPrice(Number(e.target.value))} />
+                </label>
+                <br />
+                <label>
+                    Loan Tenor(10, 15, 20, 25, 30):
+                    <select value={loanTenor} onChange={(e) => setLoanTenor(Number(e.target.value))}>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                    </select>
                 </label>
                 <br />
 
